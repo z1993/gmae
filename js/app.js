@@ -103,22 +103,10 @@ try {
             }
         });
 
-        // 添加新游戏按钮
-        const showAddGameModalBtn = document.getElementById('show-add-game-modal-btn');
-        if (showAddGameModalBtn) {
-            showAddGameModalBtn.addEventListener('click', () => showAddNewGameModal());
-        }
-
         // 游戏表单提交
         const addGameForm = document.getElementById('add-game-form');
         if (addGameForm) {
             addGameForm.addEventListener('submit', handleGameFormSubmit);
-        }
-
-        // 新游戏表单提交
-        const addNewGameForm = document.getElementById('add-new-game-form');
-        if (addNewGameForm) {
-            addNewGameForm.addEventListener('submit', handleNewGameFormSubmit);
         }
 
         // 胜者选择按钮
@@ -143,6 +131,9 @@ try {
                 input.addEventListener('change', handlePlayerNameChange);
             }
         });
+
+        // 游戏管理
+        setupGameManagement();
 
         // 数据管理按钮
         setupDataManagementEvents();
@@ -184,6 +175,7 @@ try {
     function loadInitialData() {
         updateGamesList();
         updateGameSelect();
+        updateSettingsGamesList();
         loadPlayerNames();
         updateStatistics();
     }
@@ -214,6 +206,9 @@ try {
 
     // 创建游戏元素
     function createGameElement(game) {
+        const settings = dataManager.getSettings();
+        const winnerName = game.winner === '玩家' ? settings.player1Name : settings.player2Name;
+        
         return `
             <div class="game-item" data-id="${game.id}">
                 <div class="game-header">
@@ -221,10 +216,14 @@ try {
                     <span class="game-date">${new Date(game.date).toLocaleString()}</span>
                 </div>
                 <div class="game-result">
-                    <span class="winner ${game.winner === '我' ? 'winner-player1' : 'winner-player2'}">
-                        ${game.winner} 获胜
+                    <span class="winner ${game.winner === '玩家' ? 'winner-player1' : 'winner-player2'}">
+                        ${winnerName} 获胜
                     </span>
                 </div>
+                ${game.bet ? `
+                <div class="game-bet">
+                    <i class="bi bi-coin"></i> 赌注: ${game.bet}
+                </div>` : ''}
                 ${game.notes ? `<div class="game-notes">${game.notes}</div>` : ''}
             </div>
         `;
@@ -284,14 +283,6 @@ try {
         }
     }
 
-    // 显示添加新游戏模态框
-    function showAddNewGameModal() {
-        const modal = document.getElementById('add-new-game-modal');
-        if (modal) {
-            modal.classList.add('active');
-        }
-    }
-
     // 处理游戏表单提交
     function handleGameFormSubmit(e) {
         e.preventDefault();
@@ -300,6 +291,7 @@ try {
         const winnerInput = document.getElementById('winner-input');
         const dateInput = document.getElementById('game-date');
         const notesInput = document.getElementById('game-notes');
+        const betInput = document.getElementById('game-bet');
         
         if (!gameSelect.value || !winnerInput.value || !dateInput.value) {
             alert('请填写必要信息！');
@@ -311,41 +303,16 @@ try {
             gameName: gameSelect.value,
             winner: winnerInput.value,
             date: new Date(dateInput.value).toISOString(),
-            notes: notesInput.value
+            notes: notesInput.value,
+            bet: betInput.value.trim()
         };
 
         dataManager.addGame(newGame);
         updateGamesList();
+        updateStatistics();
         
         // 关闭模态框
         const modal = document.getElementById('add-game-modal');
-        if (modal) {
-            modal.classList.remove('active');
-        }
-
-        // 重置表单
-        e.target.reset();
-    }
-
-    // 处理新游戏表单提交
-    function handleNewGameFormSubmit(e) {
-        e.preventDefault();
-        
-        const gameNameInput = document.getElementById('new-game-name');
-        if (!gameNameInput.value.trim()) {
-            alert('请输入游戏名称！');
-            return;
-        }
-
-        const settings = dataManager.getSettings();
-        if (!settings.games.includes(gameNameInput.value)) {
-            settings.games.push(gameNameInput.value);
-            dataManager.saveSettings(settings);
-            updateGameSelect();
-        }
-
-        // 关闭模态框
-        const modal = document.getElementById('add-new-game-modal');
         if (modal) {
             modal.classList.remove('active');
         }
@@ -365,6 +332,8 @@ try {
         
         dataManager.saveSettings(settings);
         updatePlayerNames(settings.player1Name, settings.player2Name);
+        updateGamesList();
+        updateStatistics();
     }
 
     // 更新统计数据
@@ -374,8 +343,8 @@ try {
         
         // 计算胜率
         const totalGames = games.length;
-        const player1Wins = games.filter(game => game.winner === settings.player1Name).length;
-        const player2Wins = games.filter(game => game.winner === settings.player2Name).length;
+        const player1Wins = games.filter(game => game.winner === '玩家').length;
+        const player2Wins = games.filter(game => game.winner === '对手').length;
         
         const winRateStats = document.getElementById('win-rate-stats');
         if (winRateStats) {
@@ -395,6 +364,26 @@ try {
                     <span class="stat-value">${totalGames ? Math.round(player2Wins / totalGames * 100) : 0}%</span>
                 </div>
             `;
+        }
+
+        // 更新游戏分布统计
+        const gamesDistribution = document.getElementById('games-distribution');
+        if (gamesDistribution) {
+            const gameStats = {};
+            games.forEach(game => {
+                gameStats[game.gameName] = (gameStats[game.gameName] || 0) + 1;
+            });
+
+            const gameStatsHtml = Object.entries(gameStats)
+                .sort(([,a], [,b]) => b - a)
+                .map(([game, count]) => `
+                    <div class="game-stat">
+                        <span class="game-name">${game}</span>
+                        <span class="game-count">${count} 局</span>
+                    </div>
+                `).join('');
+
+            gamesDistribution.innerHTML = gameStatsHtml || '<div class="empty-state">暂无数据</div>';
         }
     }
 
@@ -449,6 +438,70 @@ try {
             alert('数据已清除！');
         }
     }
+
+    // 更新游戏列表显示（设置页面）
+    function updateSettingsGamesList() {
+        const gamesList = document.getElementById('settings-games-list');
+        const settings = dataManager.getSettings();
+        
+        if (gamesList && settings.games) {
+            if (settings.games.length === 0) {
+                gamesList.innerHTML = '<div class="empty-state">还没有添加任何游戏</div>';
+            } else {
+                gamesList.innerHTML = settings.games.map(game => `
+                    <div class="game-tag">
+                        <span class="game-name">${game}</span>
+                        <button class="delete-btn" data-game="${game}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+                // 添加删除事件监听
+                gamesList.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const gameName = btn.dataset.game;
+                        if (confirm(`确定要删除游戏"${gameName}"吗？`)) {
+                            const settings = dataManager.getSettings();
+                            settings.games = settings.games.filter(g => g !== gameName);
+                            dataManager.saveSettings(settings);
+                            updateSettingsGamesList();
+                            updateGameSelect();
+                        }
+                    });
+                });
+            }
+        }
+    }
+
+    // 设置游戏管理事件
+    function setupGameManagement() {
+        const addNewGameBtn = document.getElementById('add-new-game-btn');
+        const newGameInput = document.getElementById('new-game-name');
+
+        if (addNewGameBtn && newGameInput) {
+            addNewGameBtn.addEventListener('click', () => {
+                const gameName = newGameInput.value.trim();
+                if (!gameName) {
+                    alert('请输入游戏名称！');
+                    return;
+                }
+
+                const settings = dataManager.getSettings();
+                if (settings.games.includes(gameName)) {
+                    alert('该游戏已存在！');
+                    return;
+                }
+
+                settings.games.push(gameName);
+                dataManager.saveSettings(settings);
+                newGameInput.value = '';
+                updateSettingsGamesList();
+                updateGameSelect();
+                alert('游戏添加成功！');
+            });
+        }
+    }
 } catch (error) {
     console.error('%capp.js 执行出错:', 'color: red; font-weight: bold;', error);
-}
+} 

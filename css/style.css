@@ -209,6 +209,19 @@ nav {
     border-top: 1px solid var(--border-color);
 }
 
+.game-bet {
+    color: #f57c00;
+    font-size: 0.9em;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.game-bet i {
+    font-size: 1.1em;
+}
+
 /* 统计页面样式 */
 .stats-section {
     margin-bottom: 30px;
@@ -241,6 +254,29 @@ nav {
     height: 100%;
     background-color: var(--primary-color);
     transition: width 0.3s ease;
+}
+
+/* 游戏分布统计 */
+.games-distribution {
+    display: grid;
+    gap: 10px;
+}
+
+.game-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.game-stat .game-name {
+    font-weight: 500;
+}
+
+.game-stat .game-count {
+    color: #666;
 }
 
 /* 模态框样式 */
@@ -317,43 +353,89 @@ nav {
 }
 
 /* 提示框样式 */
-.alert {
-    padding: 10px 20px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    animation: slideIn 0.3s ease;
+.form-tip {
+    margin-top: 5px;
+    color: #666;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.alert-success {
-    background-color: #e8f5e9;
-    color: var(--primary-color);
-}
-
-.alert-error {
-    background-color: #ffebee;
-    color: var(--danger-color);
-}
-
-.alert-warning {
-    background-color: #fff3e0;
-    color: #f57c00;
-}
-
-.alert-info {
-    background-color: #e3f2fd;
+.form-tip i {
     color: var(--secondary-color);
 }
 
-/* 动画 */
-@keyframes slideIn {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+/* 游戏管理样式 */
+.games-management {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.games-list-container {
+    margin-bottom: 20px;
+}
+
+.games-list-container h4 {
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.settings-games-list {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.game-tag {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.game-tag .game-name {
+    font-weight: 500;
+}
+
+.game-tag .delete-btn {
+    color: var(--danger-color);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    font-size: 1.1em;
+}
+
+.input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.input-group input {
+    flex: 1;
+}
+
+.input-group button {
+    white-space: nowrap;
+}
+
+/* 空状态样式 */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.empty-state i {
+    font-size: 3em;
+    color: #ccc;
+    margin-bottom: 20px;
 }
 
 /* 响应式设计 */
@@ -369,49 +451,12 @@ nav {
     .player-stat {
         grid-template-columns: 80px 1fr 40px;
     }
-}
 
-/* 空状态样式 */
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.empty-state i {
-    font-size: 3em;
-    color: #ccc;
-    margin-bottom: 20px;
-}
-
-.empty-state p {
-    color: #666;
-    margin-bottom: 20px;
-}
-
-/* 加载状态样式 */
-.loading {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(255,255,255,0.8);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+    .input-group {
+        flex-direction: column;
+    }
+    
+    .input-group button {
+        width: 100%;
+    }
+} 

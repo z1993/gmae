@@ -128,4 +128,4 @@ try {
     console.log('DataManager 实例创建完成，实例:', window.dataManager);
 } catch (error) {
     console.error('%cdata.js 执行出错:', 'color: red; font-weight: bold;', error);
-}
+} 
